@@ -154,7 +154,7 @@ export const HomePage: React.FC = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         gap: '2.5rem', flexWrap: 'wrap', overflow: 'hidden',
       }}>
-        {['Produtos naturais certificados','Profissionais especializadas','Cuidado personalizado','Ambiente premium & acolhedor'].map((item, i) => (
+        {['Produtos certificados','Profissionais especializadas','Cuidado personalizado','Ambiente premium & acolhedor'].map((item, i) => (
           <React.Fragment key={item}>
             {i > 0 && <span style={{ width: 1, height: 20, background: 'rgba(215,166,41,.35)' }} />}
             <span style={{ fontSize: '.72rem', letterSpacing: '.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
