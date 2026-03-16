@@ -32,6 +32,16 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_EMAILJS_SERVICE_ID:  ${{ secrets.VITE_EMAILJS_SERVICE_ID }}
+          VITE_EMAILJS_PUBLIC_KEY:  ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
+          VITE_EMAILJS_TPL_PROF:    ${{ secrets.VITE_EMAILJS_TPL_PROF }}
+          VITE_EMAILJS_TPL_CLIENT:  ${{ secrets.VITE_EMAILJS_TPL_CLIENT }}
+          VITE_EMAIL_SIMONE:        ${{ secrets.VITE_EMAIL_SIMONE }}
+          VITE_EMAIL_RAFAELA:       ${{ secrets.VITE_EMAIL_RAFAELA }}
+          VITE_EMAIL_DANI:          ${{ secrets.VITE_EMAIL_DANI }}
+          VITE_MP_PUBLIC_KEY:       ${{ secrets.VITE_MP_PUBLIC_KEY }}
+          VITE_BASE_URL:            https://www.lumiestudio.com.br
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
