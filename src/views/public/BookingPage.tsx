@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import { useBookingViewModel } from '../../viewmodels';
 import { SERVICES } from '../../services/data';
 import { Button, Input, Textarea } from '../../components/ui';
+import { useClientAuthStore } from '../../store/clientAuth';
 
 const STEP_LABELS = ['Serviço', 'Data & Hora', 'Seus Dados', 'Pagamento', 'Confirmação'];
 
@@ -206,7 +207,33 @@ const StepDateTime: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = (
 };
 
 // ── STEP 3: Dados do cliente + Termos ─────────────────────────────
-const StepContact: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => (
+const StepContact: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => {
+  const { user, profile } = useClientAuthStore();
+  const [useProfile, setUseProfile] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user && profile?.name && !vm.form.clientName) {
+      setUseProfile(true);
+      vm.updateForm('clientName',  profile.name);
+      vm.updateForm('clientEmail', user.email);
+      if (profile.phone) vm.updateForm('clientPhone', profile.phone);
+    }
+  }, [user, profile]);
+
+  const handleUseProfile = (checked: boolean) => {
+    setUseProfile(checked);
+    if (checked && profile && user) {
+      vm.updateForm('clientName',  profile.name);
+      vm.updateForm('clientEmail', user.email);
+      if (profile.phone) vm.updateForm('clientPhone', profile.phone);
+    } else {
+      vm.updateForm('clientName',  '');
+      vm.updateForm('clientEmail', '');
+      vm.updateForm('clientPhone', '');
+    }
+  };
+
+  return (
   <div>
     {/* Summary */}
     <div style={{ background: 'var(--white)', padding: '1.2rem 1.5rem', marginBottom: '2rem', borderLeft: '3px solid var(--gold)', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
@@ -223,6 +250,41 @@ const StepContact: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
         </div>
       ))}
     </div>
+
+    {/* Logged-in autofill */}
+    {user && profile ? (
+      <div style={{
+        background: useProfile ? 'rgba(215,166,41,.06)' : 'var(--white)',
+        border: `1px solid ${useProfile ? 'var(--gold)' : 'var(--blush-dark)'}`,
+        padding: '1rem 1.2rem', marginBottom: '1.5rem', transition: 'all .25s',
+      }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '.9rem', cursor: 'pointer' }}>
+          <input type="checkbox" checked={useProfile} onChange={e => handleUseProfile(e.target.checked)}
+            style={{ width: 17, height: 17, accentColor: 'var(--gold)', cursor: 'pointer', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: '.88rem', color: 'var(--brown)', fontWeight: 500, display: 'block' }}>
+              Usar meus dados cadastrados
+            </span>
+            <span style={{ fontSize: '.76rem', color: 'var(--text-soft)' }}>
+              {profile.name} · {user.email}{profile.phone ? ` · ${profile.phone}` : ''}
+            </span>
+          </div>
+          {useProfile && (
+            <span style={{ fontSize: '.65rem', letterSpacing: '.12em', textTransform: 'uppercase', background: 'rgba(215,166,41,.1)', color: 'var(--gold)', padding: '.2rem .7rem', flexShrink: 0 }}>
+              ✦ Preenchido
+            </span>
+          )}
+        </label>
+      </div>
+    ) : (
+      <div style={{ background: 'var(--blush)', padding: '.85rem 1.2rem', marginBottom: '1.5rem', fontSize: '.82rem', color: 'var(--text-soft)', display: 'flex', alignItems: 'center', gap: '.7rem' }}>
+        <span>💡</span>
+        <span>
+          <Link to="/minha-conta" style={{ color: 'var(--gold)', textDecoration: 'underline' }}>Entre na sua conta</Link>
+          {' '}para preencher automaticamente seus dados.
+        </span>
+      </div>
+    )}
 
     <SectionTitle title="Seus Dados" />
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -276,7 +338,8 @@ const StepContact: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
 
     <NavButtons vm={vm} isLast loading={vm.paymentLoading} />
   </div>
-);
+  );
+};
 
 // ── STEP 4: Pagamento Mercado Pago ────────────────────────────────
 const StepPayment: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => (
