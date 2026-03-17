@@ -148,9 +148,9 @@ export function useBookingViewModel() {
         phone: form.clientPhone,
       },
       back_urls: {
-        success: `${import.meta.env.VITE_BASE_URL ?? 'https://www.lumiestudio.com.br'}/agendar?status=approved&external_reference=${submittedId}`,
-        failure: `${import.meta.env.VITE_BASE_URL ?? 'https://www.lumiestudio.com.br'}/agendar?status=failure&external_reference=${submittedId}`,
-        pending: `${import.meta.env.VITE_BASE_URL ?? 'https://www.lumiestudio.com.br'}/agendar?status=pending&external_reference=${submittedId}`,
+        success: `${import.meta.env.VITE_BASE_URL ?? 'https://lumiestudio.com.br'}/agendar?status=approved&external_reference=${submittedId}`,
+        failure: `${import.meta.env.VITE_BASE_URL ?? 'https://lumiestudio.com.br'}/agendar?status=failure&external_reference=${submittedId}`,
+        pending: `${import.meta.env.VITE_BASE_URL ?? 'https://lumiestudio.com.br'}/agendar?status=pending&external_reference=${submittedId}`,
       },
       auto_return: 'approved',
       external_reference: submittedId,
