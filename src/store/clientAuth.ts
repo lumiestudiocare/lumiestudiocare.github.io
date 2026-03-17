@@ -78,16 +78,18 @@ export const useClientAuthStore = create<ClientAuthStore>()((set, get) => ({
 
   register: async (email, password, name, phone) => {
     set({ error: '' });
-    const { error: authErr } = await supabase.auth.signUp({ email, password });
+    const { error: authErr } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, phone },
+        emailRedirectTo: 'https://lumiestudio.com.br/confirmar',
+      },
+    });
     if (authErr) {
       set({ error: authErr.message });
       return authErr.message;
     }
-    // Upsert profile in clients table
-    await supabase.from('clients').upsert(
-      { name, phone, email, manutencao: 0 },
-      { onConflict: 'email' }
-    );
     return null;
   },
 
