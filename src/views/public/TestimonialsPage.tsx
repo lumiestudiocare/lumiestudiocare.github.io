@@ -141,7 +141,7 @@ export const TestimonialsPage: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.2rem' }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                      background: 'linear-gradient(135deg, var(--gold), var(--brown))',
+                      background: 'linear-gradient(135deg, #D7A629, #725E3A)',
                       color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontFamily: 'var(--font-display)', fontSize: '1rem',
                     }}>

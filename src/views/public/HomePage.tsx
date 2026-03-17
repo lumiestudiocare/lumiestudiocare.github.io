@@ -93,7 +93,7 @@ export const HomePage: React.FC = () => {
         }}>
           <div style={{
             width: '78%', aspectRatio: '3/4',
-            background: 'linear-gradient(145deg, #e8d5b4 0%, #c9a87c 40%, var(--brown) 100%)',
+            background: 'linear-gradient(145deg, #e8d5b4 0%, #c9a87c 40%, #725E3A 100%)',
             position: 'relative', overflow: 'hidden',
           }}>
             <div style={{
