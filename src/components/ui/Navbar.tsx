@@ -15,7 +15,6 @@ export const Navbar: React.FC = () => {
   const anchorLinks = [
     { label: 'Serviços',    to: '/#servicos' },
     { label: 'Sobre',       to: '/#sobre' },
-    { label: 'Depoimentos', to: '/#depoimentos' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -53,6 +52,12 @@ export const Navbar: React.FC = () => {
             >{l.label}</a>
           </li>
         ))}
+        <li>
+          <Link to="/depoimentos" style={linkStyle(isActive('/depoimentos'))}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--brown)')}
+            onMouseLeave={e => (e.currentTarget.style.color = isActive('/depoimentos') ? 'var(--brown)' : 'var(--text-soft)')}
+          >Depoimentos</Link>
+        </li>
         <li>
           <Link to="/contato" style={linkStyle(isActive('/contato'))}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--brown)')}

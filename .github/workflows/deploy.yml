@@ -41,7 +41,9 @@ jobs:
           VITE_EMAIL_RAFAELA:       ${{ secrets.VITE_EMAIL_RAFAELA }}
           VITE_EMAIL_DANI:          ${{ secrets.VITE_EMAIL_DANI }}
           VITE_MP_PUBLIC_KEY:       ${{ secrets.VITE_MP_PUBLIC_KEY }}
-          VITE_BASE_URL:            https://www.lumiestudio.com.br
+          VITE_SUPABASE_URL:        ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON:       ${{ secrets.VITE_SUPABASE_ANON }}
+          VITE_BASE_URL:            https://lumiestudio.com.br
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

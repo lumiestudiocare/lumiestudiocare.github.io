@@ -11,13 +11,24 @@ const STEP_LABELS = ['Serviço', 'Data & Hora', 'Seus Dados', 'Pagamento', 'Conf
 export const BookingPage: React.FC = () => {
   const vm = useBookingViewModel();
 
-  // Lida com retorno do Mercado Pago
+  // Read URL params for pre-selection (from service cards)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('status')) {
-      vm.handlePaymentReturn().then(status => {
-        if (status) vm.step < 5 && (vm as any).setStep(5);
+    const service = params.get('service');
+    const prof    = params.get('prof');
+    const status  = params.get('status');
+
+    if (status) {
+      // Returning from Mercado Pago
+      vm.handlePaymentReturn().then(() => {
+        (vm as any).setStep(5);
       });
+    } else if (service) {
+      // Pre-select service from service card click
+      vm.updateForm('serviceId', service);
+      if (prof) {
+        setTimeout(() => vm.updateForm('professionalId', prof), 50);
+      }
     }
   }, []);
 

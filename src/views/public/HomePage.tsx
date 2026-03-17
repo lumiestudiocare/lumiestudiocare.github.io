@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInstagram, faTiktok, faFacebookF, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { useReveal } from '../../hooks/useReveal';
-import { SERVICES } from '../../services/data';
+import { SERVICES, PROFESSIONALS } from '../../services/data';
 
 // Reveal wrapper component
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
@@ -251,10 +251,7 @@ export const HomePage: React.FC = () => {
               { text: '"A consultoria de skincare mudou completamente a minha pele. Recomendo de olhos fechados."', author: 'Fernanda S.' },
             ].map((t, i) => (
               <Reveal key={i} delay={i * 100}>
-                <div style={{
-                  padding: '2.5rem 2rem', background: 'var(--white)',
-                  borderBottom: '2px solid transparent', transition: 'border-color .3s',
-                }}
+                <div style={{ padding: '2.5rem 2rem', background: 'var(--white)', borderBottom: '2px solid transparent', transition: 'border-color .3s' }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--gold)')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
                 >
@@ -265,6 +262,21 @@ export const HomePage: React.FC = () => {
               </Reveal>
             ))}
           </div>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+              <Link to="/depoimentos" style={{
+                display: 'inline-flex', alignItems: 'center', gap: '.5rem',
+                padding: '.75rem 2rem', border: '1px solid var(--gold)',
+                color: 'var(--brown)', fontSize: '.78rem', letterSpacing: '.18em', textTransform: 'uppercase',
+                transition: 'all .25s',
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--gold)'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--brown)'; }}
+              >
+                Ver todos os depoimentos →
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -356,27 +368,46 @@ export const HomePage: React.FC = () => {
   );
 };
 
-// Service card sub-component
-const ServiceCard: React.FC<{ service: (typeof SERVICES)[0] }> = ({ service }) => (
-  <div style={{
-    background: 'var(--white)', padding: '2.5rem 2rem',
-    position: 'relative', overflow: 'hidden',
-    borderBottom: '2px solid transparent',
-    transition: 'transform .3s, border-color .3s',
-    height: '100%',
-  }}
-    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
-    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
-  >
-    <div style={{ fontFamily: 'var(--font-display)', fontSize: '3rem', color: 'rgba(215,166,41,.15)', lineHeight: 1, marginBottom: '.3rem' }}>
-      {String(service.id).charAt(0).toUpperCase()}
-    </div>
-    <span style={{ fontSize: '1.8rem', marginBottom: '1rem', display: 'block' }}>{service.icon}</span>
-    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', color: 'var(--brown)', marginBottom: '.6rem' }}>{service.name}</h3>
-    <p style={{ fontSize: '.87rem', lineHeight: 1.8, color: 'var(--text-soft)', marginBottom: '1.2rem' }}>{service.description}</p>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: '.72rem', letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--nude)' }}>{service.duration} min</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--gold)' }}>R$ {service.price}</span>
-    </div>
-  </div>
-);
+// Service card sub-component — click redirects to booking with pre-selected service
+const ServiceCard: React.FC<{ service: (typeof SERVICES)[0] }> = ({ service }) => {
+  // Find the matching professional for this service
+  const prof = PROFESSIONALS.find(p => p.services.includes(service.id as import('../../models').ServiceId));
+
+  return (
+    <Link
+      to={`/agendar?service=${service.id}${prof ? `&prof=${prof.id}` : ''}`}
+      style={{ display: 'block', textDecoration: 'none', height: '100%' }}
+    >
+      <div style={{
+        background: 'var(--white)', padding: '2.5rem 2rem',
+        position: 'relative', overflow: 'hidden',
+        borderBottom: '2px solid transparent',
+        transition: 'transform .3s, border-color .3s, box-shadow .3s',
+        height: '100%', cursor: 'pointer',
+      }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(114,94,58,.1)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+      >
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '3rem', color: 'rgba(215,166,41,.15)', lineHeight: 1, marginBottom: '.3rem' }}>
+          {String(service.id).charAt(0).toUpperCase()}
+        </div>
+        <span style={{ fontSize: '1.8rem', marginBottom: '1rem', display: 'block' }}>{service.icon}</span>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', color: 'var(--brown)', marginBottom: '.6rem' }}>{service.name}</h3>
+        <p style={{ fontSize: '.87rem', lineHeight: 1.8, color: 'var(--text-soft)', marginBottom: '1.2rem' }}>{service.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.8rem' }}>
+          <span style={{ fontSize: '.72rem', letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--nude)' }}>{service.duration} min</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--gold)' }}>R$ {service.price}</span>
+        </div>
+        {prof && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', paddingTop: '.8rem', borderTop: '1px solid var(--blush-dark)' }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--gold)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem', fontFamily: 'var(--font-display)' }}>
+              {prof.avatar}
+            </div>
+            <span style={{ fontSize: '.72rem', color: 'var(--text-soft)' }}>{prof.name}</span>
+            <span style={{ marginLeft: 'auto', fontSize: '.68rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--gold)' }}>Agendar →</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+};
