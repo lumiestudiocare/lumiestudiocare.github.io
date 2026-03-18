@@ -47,11 +47,11 @@ export const TermsOfUsePage: React.FC = () => {
         <Section num="01" title="Identificação">
           <p><strong style={{ color: 'var(--brown)' }}>Lumiê Studio — Beleza &amp; Estética</strong></p>
           <p>R. Areado, 11 — Conj. Hab. Pres. Castelo Branco, Carapicuíba — SP, CEP 06327-170</p>
-          <p>dani@lumiestudio.com.br · (11) 99529-7274</p>
+          <p>ola@lumiestudio.com.br · (11) 99529-7274</p>
         </Section>
         <Section num="02" title="Serviços oferecidos">
           <p>O Lumiê Studio oferece presencialmente, mediante agendamento:</p>
-          <Ul items={['Skincare &amp; Facial — limpeza, hidratação, peeling e anti-aging','Manicure &amp; Nail Art — manicure, pedicure, gel e nail art','Design de Sobrancelhas — henna, micropigmentação e brow lamination','Spa &amp; Relaxamento — massagens faciais e aromaterapia','Consultoria de Beleza — coloração pessoal e rotina de skincare']} />
+          <Ul items={['Skincare & Facial — limpeza, hidratação, peeling e anti-aging','Manicure & Nail Art — manicure, pedicure, gel e nail art','Design de Sobrancelhas — henna, micropigmentação e brow lamination','Spa & Relaxamento — massagens faciais e aromaterapia','Consultoria de Beleza — coloração pessoal e rotina de skincare']} />
         </Section>
         <Section num="03" title="Uso do sistema de agendamento">
           <p>Para agendar, o usuário deve:</p>
