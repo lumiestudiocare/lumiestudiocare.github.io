@@ -58,8 +58,19 @@ export function useBookingViewModel() {
 
   const updateForm = useCallback((field: keyof BookingFormData, value: string) => {
     setErrors(prev => ({ ...prev, [field]: '' }));
-    if (field === 'serviceId')
-      setForm(prev => ({ ...prev, serviceId: value as ServiceId, professionalId: '', date: '', time: '' }));
+    if (field === 'serviceId') {
+      // Conecta automaticamente à profissional prestadora do serviço:
+      // se apenas uma profissional atende esse serviço, ela já entra selecionada.
+      const matches = PROFESSIONALS.filter(p => p.services.includes(value as ServiceId));
+      const autoProfessionalId = matches.length === 1 ? matches[0].id : '';
+      setForm(prev => ({
+        ...prev,
+        serviceId: value as ServiceId,
+        professionalId: autoProfessionalId,
+        date: '',
+        time: '',
+      }));
+    }
     else if (field === 'professionalId')
       setForm(prev => ({ ...prev, professionalId: value, date: '', time: '' }));
     else if (field === 'date')
