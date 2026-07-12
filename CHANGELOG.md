@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.0...v1.0.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* **booking:** auto-select sole professional when service is chosen ([96f02ff](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/96f02ff2c11a1350f131cfaa4913348220eb6daa))
+
 # 1.0.0 (2026-03-18)
 
 
