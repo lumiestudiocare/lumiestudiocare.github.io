@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.1...v1.0.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* ajustes nos erros localizados ([8f059e5](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/8f059e51ef8400a078bc7b7e14fb8d6a80cd78c9))
+
 ## [1.0.1](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.0...v1.0.1) (2026-07-12)
 
 
