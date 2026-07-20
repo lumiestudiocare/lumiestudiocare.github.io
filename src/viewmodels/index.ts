@@ -6,7 +6,7 @@ import { PROFESSIONALS, SERVICES, TIME_SLOTS } from '../services/data';
 import { useBookingStore, useCatalogStore } from '../store';
 import { notifyProfessional, notifyClient, notifyPaymentConfirmed } from '../services/email';
 import { createMPCheckout, getMPStatusFromURL, formatPrice } from '../services/payment';
-import { createInfinitePayCheckout, getInfinitePayReturnFromURL, checkInfinitePayPayment, calculateInfinitePayTotal, toCents } from '../services/infinitepay';
+import { createInfinitePayCheckout, getInfinitePayReturnFromURL, checkInfinitePayPayment, calculateInfinitePayTotal, toCents } from '../services/payment';
 
 // ── BOOKING VIEW MODEL ────────────────────────────────────────────
 export function useBookingViewModel() {

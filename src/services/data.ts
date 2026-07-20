@@ -9,6 +9,7 @@ export const SERVICES: Service[] = [
     price: 180,
     icon: '✦',
     category: 'Rosto',
+    active: true,
   },
   {
     id: 'manicure',
@@ -18,6 +19,7 @@ export const SERVICES: Service[] = [
     price: 120,
     icon: '💅',
     category: 'Unhas',
+    active: true,
   },
   {
     id: 'sobrancelhas',
@@ -27,6 +29,7 @@ export const SERVICES: Service[] = [
     price: 90,
     icon: '🌸',
     category: 'Olhar',
+    active: true,
   },
   {
     id: 'spa',
@@ -36,6 +39,7 @@ export const SERVICES: Service[] = [
     price: 220,
     icon: '🕯️',
     category: 'Corpo',
+    active: true,
   },
   {
     id: 'consultoria',
@@ -45,6 +49,7 @@ export const SERVICES: Service[] = [
     price: 150,
     icon: '💛',
     category: 'Estilo',
+    active: true,
   },
 ];
 
