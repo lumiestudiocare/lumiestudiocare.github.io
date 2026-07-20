@@ -1,14 +1,55 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Booking, BookingStatus } from '../models';
-import { ADMIN_CREDENTIALS } from '../services/data';
-import { supabase } from '../services/supabase';
+import type { Booking, BookingStatus, Service } from '../models';
+import { ADMIN_CREDENTIALS, SERVICES } from '../services/data';
+import { supabase, supabaseReady } from '../services/supabase';
+
+// ── CATALOG STORE — serviços e handles InfinitePay vindos do Supabase ──
+interface CatalogStore {
+  services: Service[];        // todos os serviços, para lookups de nome/ícone (histórico)
+  activeServices: Service[];  // só os disponíveis para novo agendamento
+  professionalHandles: Record<string, string>; // professionalId -> InfiniteTag (InfinitePay)
+  loading: boolean;
+  loaded: boolean;
+  fetch: () => Promise<void>;
+}
+
+export const useCatalogStore = create<CatalogStore>()((set) => ({
+  // Semente estática como fallback antes do primeiro fetch (ou se o Supabase cair)
+  services: SERVICES,
+  activeServices: SERVICES.filter(s => s.active),
+  professionalHandles: {},
+  loading: false,
+  loaded: false,
+
+  fetch: async () => {
+    if (!supabaseReady) return; // mantém a semente estática
+    set({ loading: true });
+    const [{ data: services, error: svcError }, { data: profs }] = await Promise.all([
+      supabase.from('services').select('*').order('name'),
+      supabase.from('professionals').select('id, infinitepay_handle'),
+    ]);
+
+    const professionalHandles: Record<string, string> = {};
+    (profs ?? []).forEach((p: { id: string; infinitepay_handle: string | null }) => {
+      if (p.infinitepay_handle) professionalHandles[p.id] = p.infinitepay_handle;
+    });
+
+    if (!svcError && services && services.length > 0) {
+      const list = services as Service[];
+      set({ services: list, activeServices: list.filter(s => s.active), professionalHandles, loading: false, loaded: true });
+    } else {
+      set({ professionalHandles, loading: false, loaded: true });
+    }
+  },
+}));
 
 // ── BOOKING STORE — localStorage + Supabase sync ─────────────────
 interface BookingStore {
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id' | 'createdAt'>) => Booking;
   updateStatus: (id: string, status: BookingStatus) => void;
+  recordPayment: (id: string, info: { paymentMethod: 'mercadopago' | 'infinitepay'; paymentAmount: number; platformFeeAmount?: number }) => void;
   deleteBooking: (id: string) => void;
   getBookingsByDate: (date: string) => Booking[];
   getBookedTimes: (date: string, professionalId: string) => string[];
@@ -51,6 +92,29 @@ export const useBookingStore = create<BookingStore>()(
           bookings: s.bookings.map(b => b.id === id ? { ...b, status } : b),
         }));
         supabase.from('bookings').update({ status }).eq('id', id).then(() => {});
+      },
+
+      recordPayment: (id, info) => {
+        const paidAt = new Date().toISOString();
+        set(s => ({
+          bookings: s.bookings.map(b => b.id === id ? {
+            ...b,
+            status: 'confirmed',
+            paymentMethod: info.paymentMethod,
+            paymentAmount: info.paymentAmount,
+            platformFeeAmount: info.platformFeeAmount,
+            paidAt,
+          } : b),
+        }));
+        supabase.from('bookings').update({
+          status:             'confirmed',
+          payment_method:     info.paymentMethod,
+          payment_amount:     info.paymentAmount,
+          platform_fee_amount: info.platformFeeAmount ?? null,
+          paid_at:            paidAt,
+        }).eq('id', id).then(({ error }) => {
+          if (error) console.warn('Supabase sync failed (recordPayment):', error.message);
+        });
       },
 
       deleteBooking: (id) => {

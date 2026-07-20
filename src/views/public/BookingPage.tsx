@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBookingViewModel } from '../../viewmodels';
-import { SERVICES } from '../../services/data';
+import { useCatalogStore } from '../../store';
 import { Button, Input, Textarea } from '../../components/ui';
 import { useClientAuthStore } from '../../store/clientAuth';
 
@@ -11,6 +11,7 @@ const STEP_LABELS = ['Serviço', 'Data & Hora', 'Seus Dados', 'Pagamento', 'Conf
 
 export const BookingPage: React.FC = () => {
   const vm = useBookingViewModel();
+  const { activeServices, loaded } = useCatalogStore(s => ({ activeServices: s.activeServices, loaded: s.loaded }));
 
   // Read URL params for pre-selection (from service cards or client portal)
   useEffect(() => {
@@ -38,6 +39,14 @@ export const BookingPage: React.FC = () => {
       }
     }
   }, []);
+
+  // Se o link veio de um card salvo/compartilhado de um serviço que foi
+  // desativado nesse meio tempo, limpa a seleção assim que o catálogo carregar.
+  useEffect(() => {
+    if (loaded && vm.form.serviceId && !activeServices.some(s => s.id === vm.form.serviceId)) {
+      vm.updateForm('serviceId', '');
+    }
+  }, [loaded, activeServices]);
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: '80px', background: 'var(--blush)' }}>
@@ -96,11 +105,13 @@ export const BookingPage: React.FC = () => {
 };
 
 // ── STEP 1: Serviço & Profissional ────────────────────────────────
-const StepService: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => (
+const StepService: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => {
+  const activeServices = useCatalogStore(s => s.activeServices);
+  return (
   <div>
     <SectionTitle title="Escolha o Serviço" />
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-      {SERVICES.map(s => (
+      {activeServices.map(s => (
         <SelectCard key={s.id} selected={vm.form.serviceId === s.id} onClick={() => vm.updateForm('serviceId', s.id)}>
           <span style={{ fontSize: '1.6rem', marginBottom: '.5rem', display: 'block' }}>{s.icon}</span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--brown)', display: 'block', marginBottom: '.3rem' }}>{s.name}</span>
@@ -135,7 +146,8 @@ const StepService: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
 
     <NavButtons vm={vm} />
   </div>
-);
+  );
+};
 
 // ── STEP 2: Data & Hora ───────────────────────────────────────────
 const StepDateTime: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({ vm }) => {
@@ -378,7 +390,7 @@ const StepPayment: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
       </div>
     </div>
 
-    {/* Métodos */}
+    {/* Métodos de recebimento (formas de pagar) */}
     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
       {[
         { icon: '⚡', label: 'PIX', sub: 'Aprovação imediata' },
@@ -398,12 +410,58 @@ const StepPayment: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
       ))}
     </div>
 
+    {/* Provedor de pagamento — cliente escolhe */}
+    {vm.selectedProfessionalHandle && (
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p style={{ fontSize: '.7rem', letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--nude)', textAlign: 'center', marginBottom: '.7rem' }}>
+          Processar pagamento via
+        </p>
+        <div style={{ display: 'flex', gap: '.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {([
+            { id: 'mercadopago' as const, label: 'Mercado Pago' },
+            { id: 'infinitepay'  as const, label: `InfinitePay · direto para ${vm.selectedProfessional?.name}` },
+          ]).map(opt => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => vm.setPaymentMethod(opt.id)}
+              style={{
+                padding: '.6rem 1rem', fontSize: '.78rem', cursor: 'pointer',
+                border: `1px solid ${vm.paymentMethod === opt.id ? 'var(--gold)' : 'var(--blush-dark)'}`,
+                background: vm.paymentMethod === opt.id ? 'rgba(215,166,41,.08)' : 'var(--white)',
+                color: 'var(--brown)', fontWeight: vm.paymentMethod === opt.id ? 600 : 400,
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {vm.paymentMethod === 'infinitepay' && vm.infinitePayTotal && (
+          <div style={{ background: 'var(--blush)', padding: '.9rem 1.1rem', marginTop: '.8rem', fontSize: '.78rem', color: 'var(--text-soft)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.3rem' }}>
+              <span>Serviço</span><span>{vm.formatPrice(vm.infinitePayTotal.servicePrice)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.3rem' }}>
+              <span>Taxa de serviço online (10%)</span><span>{vm.formatPrice(vm.infinitePayTotal.feeAmount)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: 'var(--brown)', borderTop: '1px solid var(--blush-dark)', paddingTop: '.4rem', marginTop: '.4rem' }}>
+              <span>Total</span><span>{vm.formatPrice(vm.infinitePayTotal.totalAmount)}</span>
+            </div>
+            <p style={{ fontSize: '.7rem', color: 'var(--nude)', marginTop: '.5rem', marginBottom: 0 }}>
+              O valor cai direto na conta de {vm.selectedProfessional?.name} via InfinitePay.
+            </p>
+          </div>
+        )}
+      </div>
+    )}
+
     <p style={{ fontSize: '.75rem', color: 'var(--nude)', textAlign: 'center', marginBottom: '1.5rem' }}>
-      🔒 Pagamento processado com segurança pelo <strong>Mercado Pago</strong>
+      🔒 Pagamento processado com segurança pelo{' '}
+      <strong>{vm.paymentMethod === 'infinitepay' ? 'InfinitePay' : 'Mercado Pago'}</strong>
     </p>
 
     <button
-      onClick={vm.goToPayment}
+      onClick={vm.paymentMethod === 'infinitepay' ? vm.goToInfinitePayPayment : vm.goToPayment}
       disabled={vm.paymentLoading}
       style={{
         width: '100%', padding: '1rem', background: 'var(--gold)', color: 'white', border: 'none',
@@ -414,7 +472,11 @@ const StepPayment: React.FC<{ vm: ReturnType<typeof useBookingViewModel> }> = ({
       onMouseEnter={e => { if (!vm.paymentLoading) (e.currentTarget.style.background = 'var(--gold-dark)'); }}
       onMouseLeave={e => { (e.currentTarget.style.background = 'var(--gold)'); }}
     >
-      {vm.paymentLoading ? '⏳ Aguarde...' : `Pagar ${vm.selectedService ? vm.formatPrice(vm.selectedService.price) : ''} →`}
+      {vm.paymentLoading ? '⏳ Aguarde...' : `Pagar ${
+        vm.paymentMethod === 'infinitepay' && vm.infinitePayTotal
+          ? vm.formatPrice(vm.infinitePayTotal.totalAmount)
+          : vm.selectedService ? vm.formatPrice(vm.selectedService.price) : ''
+      } →`}
     </button>
 
     <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '.75rem', color: 'var(--nude)' }}>

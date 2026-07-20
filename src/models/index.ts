@@ -15,6 +15,7 @@ export interface Service {
   price: number;
   icon: string;
   category: string;
+  active: boolean;
 }
 
 export interface Professional {
@@ -24,6 +25,7 @@ export interface Professional {
   avatar: string;
   services: ServiceId[];
   availableDays: number[]; // 0=Sun..6=Sat
+  infinitepayHandle?: string | null; // InfiniteTag — pagamentos InfinitePay caem direto na conta dela
 }
 
 export interface TimeSlot {
@@ -45,6 +47,10 @@ export interface Booking {
   notes: string;
   status: BookingStatus;
   createdAt: string;
+  paymentMethod?: 'mercadopago' | 'infinitepay';
+  paymentAmount?: number;      // total pago pela cliente (em reais)
+  platformFeeAmount?: number;  // taxa de 10% que a profissional repassa (InfinitePay)
+  paidAt?: string;
 }
 
 export interface BookingFormData {

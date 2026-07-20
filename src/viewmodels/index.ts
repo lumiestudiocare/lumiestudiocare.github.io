@@ -3,13 +3,15 @@ import { format, addDays, isBefore, startOfDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { BookingFormData, ServiceId } from '../models';
 import { PROFESSIONALS, SERVICES, TIME_SLOTS } from '../services/data';
-import { useBookingStore } from '../store';
+import { useBookingStore, useCatalogStore } from '../store';
 import { notifyProfessional, notifyClient, notifyPaymentConfirmed } from '../services/email';
 import { createMPCheckout, getMPStatusFromURL, formatPrice } from '../services/payment';
+import { createInfinitePayCheckout, getInfinitePayReturnFromURL, checkInfinitePayPayment, calculateInfinitePayTotal, toCents } from '../services/infinitepay';
 
 // ── BOOKING VIEW MODEL ────────────────────────────────────────────
 export function useBookingViewModel() {
-  const { addBooking, getBookedTimes, bookings, updateStatus } = useBookingStore();
+  const { addBooking, getBookedTimes, bookings, updateStatus, recordPayment } = useBookingStore();
+  const { professionalHandles, services: catalogServices } = useCatalogStore(s => ({ professionalHandles: s.professionalHandles, services: s.services }));
 
   const [step, setStep]           = useState<1|2|3|4|5>(1);
   const [form, setForm]           = useState<BookingFormData>({
@@ -19,6 +21,7 @@ export function useBookingViewModel() {
   const [errors, setErrors]       = useState<Partial<Record<keyof BookingFormData, string>>>({});
   const [submittedId, setSubmittedId]   = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod]   = useState<'mercadopago' | 'infinitepay'>('mercadopago');
   const [termsAccepted, setTermsAccepted]   = useState(false);
   const [termsError, setTermsError]         = useState('');
 
@@ -171,8 +174,67 @@ export function useBookingViewModel() {
     window.location.href = url;
   }, [selectedService, submittedId, form]);
 
-  // ── Lida com retorno do MP (após redirect) ────────────────────
+  // ── Inicia checkout InfinitePay (link vai direto pra conta da profissional) ──
+  const selectedProfessionalHandle = selectedProfessional ? professionalHandles[selectedProfessional.id] : undefined;
+
+  const goToInfinitePayPayment = useCallback(async () => {
+    if (!selectedService || !submittedId || !selectedProfessionalHandle) return;
+    setPaymentLoading(true);
+    try {
+      const { feeAmount } = calculateInfinitePayTotal(selectedService.price);
+      const url = await createInfinitePayCheckout({
+        handle: selectedProfessionalHandle,
+        orderNsu: submittedId,
+        redirectUrl: `${import.meta.env.VITE_BASE_URL ?? 'https://lumiestudio.com.br'}/agendar`,
+        items: [
+          { quantity: 1, price: toCents(selectedService.price), description: selectedService.name },
+          { quantity: 1, price: toCents(feeAmount), description: 'Taxa de serviço online (10%)' },
+        ],
+        customer: {
+          name: form.clientName,
+          email: form.clientEmail,
+          phone_number: form.clientPhone,
+        },
+      });
+      window.location.href = url;
+    } catch {
+      setPaymentLoading(false);
+      // Falha ao gerar o link — mantém a cliente na tela de pagamento pra tentar de novo
+    }
+  }, [selectedService, submittedId, selectedProfessionalHandle, form]);
+
+  // ── Lida com retorno do MP ou da InfinitePay (após redirect) ──────
   const handlePaymentReturn = useCallback(async () => {
+    // InfinitePay anexa order_nsu + capture_method (sem "status") na volta
+    const ip = getInfinitePayReturnFromURL();
+    if (ip.orderNsu && ip.captureMethod) {
+      const booking = bookings.find(b => b.id === ip.orderNsu);
+      if (!booking) return null;
+
+      const professional = PROFESSIONALS.find(p => p.id === booking.professionalId);
+      const handle = professionalHandles[booking.professionalId] ?? professional?.infinitepayHandle ?? undefined;
+      if (!handle || !ip.transactionNsu || !ip.slug) return 'failure';
+
+      const result = await checkInfinitePayPayment({
+        handle, orderNsu: ip.orderNsu, transactionNsu: ip.transactionNsu, slug: ip.slug,
+      });
+
+      if (result.paid) {
+        const service = catalogServices.find(s => s.id === booking.serviceId) ?? SERVICES.find(s => s.id === booking.serviceId);
+        const { feeAmount, totalAmount } = calculateInfinitePayTotal(service?.price ?? 0);
+        recordPayment(booking.id, {
+          paymentMethod: 'infinitepay',
+          paymentAmount: totalAmount,
+          platformFeeAmount: feeAmount,
+        });
+        try {
+          await notifyPaymentConfirmed(booking, totalAmount);
+        } catch { /* silencioso */ }
+        return 'approved';
+      }
+      return 'failure';
+    }
+
     const { status, bookingId } = getMPStatusFromURL();
     if (!status || !bookingId) return null;
 
@@ -187,7 +249,7 @@ export function useBookingViewModel() {
     }
 
     return status;
-  }, [bookings, updateStatus, selectedService]);
+  }, [bookings, updateStatus, recordPayment, selectedService, professionalHandles, catalogServices]);
 
   const reset = useCallback(() => {
     setForm({ clientName:'', clientPhone:'', clientEmail:'', serviceId:'', professionalId:'', date:'', time:'', notes:'' });
@@ -206,13 +268,19 @@ export function useBookingViewModel() {
     return format(new Date(y, m-1, day), "d 'de' MMMM", { locale: ptBR });
   };
 
+  const infinitePayTotal = useMemo(
+    () => selectedService ? calculateInfinitePayTotal(selectedService.price) : null,
+    [selectedService]
+  );
+
   return {
     step, form, errors, submittedId,
     paymentLoading, termsAccepted, setTermsAccepted, termsError,
+    paymentMethod, setPaymentMethod, selectedProfessionalHandle, infinitePayTotal,
     availableProfessionals, availableDates, availableSlots,
     selectedService, selectedProfessional,
     updateForm, nextStep, prevStep, submit, reset, formatDate,
-    goToPayment, handlePaymentReturn,
+    goToPayment, goToInfinitePayPayment, handlePaymentReturn,
     isToday, formatPrice,
   };
 }
