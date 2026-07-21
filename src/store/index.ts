@@ -26,7 +26,7 @@ export const useCatalogStore = create<CatalogStore>()((set) => ({
     if (!supabaseReady) return; // mantém a semente estática
     set({ loading: true });
     const [{ data: services, error: svcError }, { data: profs }] = await Promise.all([
-      supabase.from('services').select('*').order('name'),
+      supabase.from('services').select('*').eq('active', true).order('name'),
       supabase.from('professionals').select('id, infinitepay_handle'),
     ]);
 
@@ -37,7 +37,7 @@ export const useCatalogStore = create<CatalogStore>()((set) => ({
 
     if (!svcError && services && services.length > 0) {
       const list = services as Service[];
-      set({ services: list, activeServices: list.filter(s => s.active), professionalHandles, loading: false, loaded: true });
+      set({ services: list, activeServices: list, professionalHandles, loading: false, loaded: true });
     } else {
       set({ professionalHandles, loading: false, loaded: true });
     }
