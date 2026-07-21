@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInstagram, faTiktok, faFacebookF, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { useReveal } from '../../hooks/useReveal';
 import { SERVICES, PROFESSIONALS } from '../../services/data';
+import { useCatalogStore } from '../../store';
 import logoImg from '../../assets/logo.png';
 
 // Reveal wrapper component
@@ -18,6 +19,7 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ child
 
 export const HomePage: React.FC = () => {
   useEffect(() => { window.scrollTo(0, 0); }, []);
+  const activeServices = useCatalogStore(s => s.activeServices);
 
   return (
     <div className="page-enter">
@@ -180,7 +182,7 @@ export const HomePage: React.FC = () => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
             gap: '2px',
           }}>
-            {SERVICES.map((service, i) => (
+            {activeServices.map((service, i) => (
               <Reveal key={service.id} delay={i * 80}>
                 <ServiceCard service={service} />
               </Reveal>
