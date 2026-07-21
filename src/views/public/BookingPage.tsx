@@ -12,7 +12,8 @@ const STEP_LABELS = ['Serviço', 'Data & Hora', 'Seus Dados', 'Pagamento', 'Conf
 export const BookingPage: React.FC = () => {
   const vm = useBookingViewModel();
   const location = useLocation();
-  const { activeServices, loaded } = useCatalogStore(s => ({ activeServices: s.activeServices, loaded: s.loaded }));
+  const activeServices = useCatalogStore(s => s.activeServices);
+  const loaded = useCatalogStore(s => s.loaded);
 
   // Read URL params for pre-selection (from service cards or client portal)
   useEffect(() => {

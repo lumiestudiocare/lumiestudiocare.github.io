@@ -11,7 +11,8 @@ import { createInfinitePayCheckout, getInfinitePayReturnFromURL, checkInfinitePa
 // ── BOOKING VIEW MODEL ────────────────────────────────────────────
 export function useBookingViewModel() {
   const { addBooking, getBookedTimes, bookings, updateStatus, recordPayment } = useBookingStore();
-  const { professionalHandles, services: catalogServices } = useCatalogStore(s => ({ professionalHandles: s.professionalHandles, services: s.services }));
+  const professionalHandles = useCatalogStore(s => s.professionalHandles);
+  const catalogServices = useCatalogStore(s => s.services);
 
   const [step, setStep]           = useState<1|2|3|4|5>(1);
   const [form, setForm]           = useState<BookingFormData>({
