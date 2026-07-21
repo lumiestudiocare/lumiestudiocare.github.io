@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.2...v1.0.3) (2026-07-21)
+
+
+### Bug Fixes
+
+* ajuste para servicos ativos ([2a443cf](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/2a443cfd62102d6b409d725f5076a25a6c0f0d3b))
+
 ## [1.0.2](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.1...v1.0.2) (2026-07-20)
 
 
