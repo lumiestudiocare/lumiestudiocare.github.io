@@ -5,6 +5,15 @@
 
 * ajuste para servicos ativos ([2a443cf](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/2a443cfd62102d6b409d725f5076a25a6c0f0d3b))
 * catálogo de serviços volta a sincronizar com o Supabase (active) ([0872379](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/0872379822e1e279338a82cff4ed34359e3d740c))
+* correção de rota para agendamento ([7e8f510](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/7e8f510fcc43541951b58da2116773f82e7b3741))
+
+## [1.0.3](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.2...v1.0.3) (2026-07-21)
+
+
+### Bug Fixes
+
+* ajuste para servicos ativos ([2a443cf](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/2a443cfd62102d6b409d725f5076a25a6c0f0d3b))
+* catálogo de serviços volta a sincronizar com o Supabase (active) ([0872379](https://github.com/lumiestudiocare/lumiestudiocare.github.io/commit/0872379822e1e279338a82cff4ed34359e3d740c))
 
 ## [1.0.2](https://github.com/lumiestudiocare/lumiestudiocare.github.io/compare/v1.0.1...v1.0.2) (2026-07-20)
 
