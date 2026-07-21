@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBookingViewModel } from '../../viewmodels';
@@ -11,34 +11,45 @@ const STEP_LABELS = ['Serviço', 'Data & Hora', 'Seus Dados', 'Pagamento', 'Conf
 
 export const BookingPage: React.FC = () => {
   const vm = useBookingViewModel();
+  const location = useLocation();
   const { activeServices, loaded } = useCatalogStore(s => ({ activeServices: s.activeServices, loaded: s.loaded }));
 
   // Read URL params for pre-selection (from service cards or client portal)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const service = params.get('service');
-    const prof    = params.get('prof');
-    const status  = params.get('status');
-    const name    = params.get('name');
-    const email   = params.get('email');
-    const phone   = params.get('phone');
+    const params = new URLSearchParams(location.search);
+    const rawService = params.get('service') ?? params.get('serviceId');
+    const prof       = params.get('prof');
+    const status     = params.get('status');
+    const name       = params.get('name');
+    const email      = params.get('email');
+    const phone      = params.get('phone');
 
     if (status) {
       vm.handlePaymentReturn().then(() => {
         (vm as any).setStep(5);
       });
-    } else {
-      // Pre-fill client data if coming from portal
-      if (name)  vm.updateForm('clientName', decodeURIComponent(name));
-      if (email) vm.updateForm('clientEmail', decodeURIComponent(email));
-      if (phone) vm.updateForm('clientPhone', decodeURIComponent(phone));
-      // Pre-select service
-      if (service) {
-        vm.updateForm('serviceId', service);
-        if (prof) setTimeout(() => vm.updateForm('professionalId', prof), 50);
-      }
+      return;
     }
-  }, []);
+
+    // Pre-fill client data if coming from portal
+    if (name)  vm.updateForm('clientName', decodeURIComponent(name));
+    if (email) vm.updateForm('clientEmail', decodeURIComponent(email));
+    if (phone) vm.updateForm('clientPhone', decodeURIComponent(phone));
+
+    if (!rawService) return;
+
+    const normalizedService = rawService.toLowerCase().trim();
+    const matchedService = activeServices.find(service =>
+      service.id === normalizedService ||
+      service.name.toLowerCase().trim() === normalizedService ||
+      service.name.toLowerCase().replace(/\s+/g, '') === normalizedService.replace(/\s+/g, '')
+    );
+
+    if (matchedService) {
+      vm.updateForm('serviceId', matchedService.id);
+      if (prof) vm.updateForm('professionalId', prof);
+    }
+  }, [location.search, activeServices, loaded, vm.updateForm]);
 
   // Se o link veio de um card salvo/compartilhado de um serviço que foi
   // desativado nesse meio tempo, limpa a seleção assim que o catálogo carregar.
